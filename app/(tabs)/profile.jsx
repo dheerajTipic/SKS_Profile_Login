@@ -1,99 +1,140 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { TextInput as RNMaterialTextInput, Button } from "@react-native-material/core";
-import Animated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { deleteToken, getToken } from '../util/asyncStorage';
+import { DialogContent, TextInput, Button } from '@react-native-material/core';
+import { ScrollView } from 'react-native-gesture-handler';
 
-const AdvancedTable = () => {
-  const [filterText, setFilterText] = useState('');
-  
-  const [items, setItems] = useState([
-    { id: '1', name: 'Item 1', quantity: 10, price: 100 },
-    { id: '2', name: 'Item 2', quantity: 20, price: 200 },
-    // More items...
-  ]);
+const Profile = () => {
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [reEnterPassword, setReEnterPassword] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [passVisible, setpassVisible] = useState(false);
+  const [emailId, setemailId] = useState('');
 
-  const [newItem, setNewItem] = useState({ name: '', quantity: '', price: '' });
+  const toggleMenu = () => {
+    setpassVisible(!passVisible);
+  };
 
-  const handleAddItem = () => {
-    if (newItem.name && newItem.quantity && newItem.price) {
-      const id = (items.length + 1).toString();
-      setItems([...items, { id, ...newItem }]);
-      setNewItem({ name: '', quantity: '', price: '' });
+  const handlePress = async () => {
+    try {
+      const ss = getToken();
+      console.log(ss);
+      await deleteToken();
+      const s = getToken
+      console.log(s);
+      router.push('/'); // Navigate to homepage
+    } catch (error) {
+      console.error('Error during delete token or navigation:', error);
     }
   };
 
-  const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(filterText.toLowerCase())
-  );
+  const handlePasswordSubmit = () => {
+    if (newPassword === reEnterPassword && oldPassword && emailId) {
+      setSuccessMessage('Password successfully updated');
+      setDialogVisible(false);
+      // Add logic for password update API call here
+    } else {
+      Alert.alert('Error', 'Passwords do not match or fields are empty.');
+    }
+  };
 
-  const renderItem = ({ item }) => (
-    <Animated.View
-      entering={FadeIn}
-      exiting={FadeOut}
-      layout={Layout.springify()}
-      style={styles.row}
-    >
-      <Text style={styles.cell}>{item.name}</Text>
-      <Text style={styles.cell}>{item.quantity}</Text>
-      <Text style={styles.cell}>{item.price}</Text>
-    </Animated.View>
-  );
-
+  const router = useRouter();
   return (
     <View style={styles.container}>
-      {/* Filter Input */}
-      <RNMaterialTextInput
-        label="Filter by equpment name"
-        value={filterText}
-        onChangeText={setFilterText}
-        style={styles.filterInput}
-      />
+      {/* Hamburger Menu */}
+      <Modal
+        transparent={true}
+        visible={menuVisible}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity style={styles.menuOverlay} onPress={() => setMenuVisible(false)}>
+          <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={handlePress}>
+              <Text style={styles.menuText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      
 
-      {/* Table */}
-      <View style={styles.table}>
-        <Animated.FlatList
-          data={filteredItems}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          ListHeaderComponent={
-            <View style={styles.header}>
-              <Text style={styles.headerText}> </Text>
-              <Text style={styles.headerText}>Quantity</Text>
-              <Text style={styles.headerText}>Price</Text>
-            </View>
-          }
-        />
-      </View>
+      {/* Success Message */}
+      {successMessage ? <Text style={styles.successMessage}>{successMessage}</Text> : null}
+      
+      {/* Profile Info */}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <TouchableOpacity style={styles.hamburgerButton} onPress={handlePress}>
+            <Text style={styles.menuText}>Logout</Text>
+          </TouchableOpacity>
+        <View style={styles.profileContainer}>
+          
 
-      {/* Add Item Form */}
-      <View style={styles.form}>
-        <RNMaterialTextInput
-          label=" Equipment Name"
-          value={newItem.name}
-          onChangeText={text => setNewItem({ ...newItem, name: text })}
-          style={styles.input}
-        />
-        <RNMaterialTextInput
-          label="Quantity"
-          value={newItem.quantity}
-          onChangeText={text => setNewItem({ ...newItem, quantity: text })}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <RNMaterialTextInput
-          label="Price"
-          value={newItem.price}
-          onChangeText={text => setNewItem({ ...newItem, price: text })}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <Button
-          title="Add Item"
-          onPress={handleAddItem}
-          style={styles.addButton}
-          contentContainerStyle={styles.addButtonContent}
-        />
-      </View>
+          <Image source={require('../../assets/images/Person.png')} style={styles.profileImage} />
+          <Text style={styles.profileName}>John Doe</Text>
+          
+        </View>
+
+        {/* Statistics */}
+        <View style={styles.cardContainer}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Total</Text>
+            <Text style={styles.cardContent}>5</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Complete</Text>
+            <Text style={styles.cardContent}>3</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Pending</Text>
+            <Text style={styles.cardContent}>2</Text>
+          </View>
+        </View>
+
+        {/* Change Password Section */}
+        <View style={styles.line} />
+        <View style={styles.changePassCard}>
+          <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
+            <Text style={styles.menuText}>Change Password</Text>
+          </TouchableOpacity>
+
+          {passVisible && (
+            <DialogContent>
+              <TextInput
+                label="Enter Email-id"
+                value={emailId}
+                onChangeText={setemailId}
+                style={styles.textInput}
+              />
+              <TextInput
+                label="Old Password"
+                value={oldPassword}
+                onChangeText={setOldPassword}
+                secureTextEntry={true}
+                style={styles.textInput}
+              />
+              <TextInput
+                label="New Password"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={true}
+                style={styles.textInput}
+              />
+              <TextInput
+                label="Re-enter New Password"
+                value={reEnterPassword}
+                onChangeText={setReEnterPassword}
+                secureTextEntry={true}
+                style={styles.textInput}
+              />
+              <Button title="Submit" onPress={handlePasswordSubmit} style={styles.submitButton} />
+            </DialogContent>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -101,56 +142,94 @@ const AdvancedTable = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f8f8f8',
+    padding: 16,
+    backgroundColor: '#f0f0f0',
   },
-  filterInput: {
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  changePassCard:{ 
+    alignSelf:'flex-start',
+  },
+  hamburgerButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  line: {
+    width: '100%',
+    height: 2,
+    backgroundColor: '#000',
+    marginVertical: 20,
+  },
+  menuItem: {
+    paddingVertical: 10,
+    margin: 10,
+  },
+  menuText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    alignSelf:'flex-start',
+    justifyContent:'flex-end',
+  },
+  profileContainer: {
+    alignItems: 'center',
     marginBottom: 20,
   },
-  table: {
-    borderRadius: 10,
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  cardContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 20,
+  },
+  card: {
     backgroundColor: '#fff',
-    padding: 10,
+    borderRadius: 10,
+    padding: 20,
+    width: '30%',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowRadius: 4,
     elevation: 5,
   },
-  header: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 10,
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
     marginBottom: 10,
   },
-  headerText: {
-    flex: 1,
+  cardContent: {
+    fontSize: 32,
     fontWeight: 'bold',
-    fontSize: 16,
   },
-  row: {
-    flexDirection: 'row',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  cell: {
-    flex: 1,
-    fontSize: 14,
-  },
-  form: {
-    marginTop: 30,
-  },
-  input: {
+  textInput: {
     marginBottom: 15,
+    padding: 8,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
   },
-  addButton: {
-    marginTop: 20,
+  submitButton: {
+    marginTop: 10,
   },
-  addButtonContent: {
-    paddingVertical: 10,
+  successMessage: {
+    color: 'green',
+    marginTop: 10,
+    fontSize: 16,
   },
 });
 
-export default AdvancedTable;
+export default Profile;
